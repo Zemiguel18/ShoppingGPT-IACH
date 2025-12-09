@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ShoppingGPT Assistant</title>
+
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f7f7f7; }
+        .chat-container { height: 80vh; max-width: 600px; }
+        .message-bubble { max-width: 80%; padding: 10px 15px; border-radius: 20px; margin-bottom: 8px; }
+        .user { background-color: #3b82f6; color: white; margin-left: auto; border-bottom-right-radius: 2px; }
+        .bot { background-color: #e5e7eb; color: #1f2937; margin-right: auto; border-bottom-left-radius: 2px; }
+        .input-area { background-color: white; border-radius: 12px; }
+        .image-preview { max-width: 250px; height: auto; border-radius: 8px; margin-top: 5px; }
+        .product-card { background-color: white; border-radius: 8px; padding: 10px; margin-top: 10px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); }
+        .product-image { width: 100%; height: auto; object-fit: contain; border-radius: 6px; margin-bottom: 5px; }
+    </style>
+</head>
+
+<body class="flex items-center justify-center min-h-screen">
+    <div class="chat-container flex flex-col shadow-2xl rounded-xl overflow-hidden bg-white">
+        <!-- Header -->
+        <header class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md">
+            <h1 class="text-xl font-bold">🛒 ShoppingGPT Assistant</h1>
+        </header>
+
+        <!-- Chat Output Area -->
+        <div id="chat-output" class="flex-grow p-4 overflow-y-auto space-y-4 bg-gray-50">
+            <div class="flex">
+                <div class="message-bubble bot shadow-md">
+                    Hi! I'm your AI Shopping Assistant. What do you need today?
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area p-4 border-t border-gray-200">
+            <!-- Image Preview/Remove -->
+            <div id="image-preview-container" class="mb-2 hidden">
+                <div class="flex items-center justify-between p-2 bg-gray-100 rounded-lg">
+                    <img id="image-preview" class="h-16 w-16 object-cover rounded-md" alt="Pré-visualização da Imagem">
+                    <span id="image-filename" class="text-sm text-gray-600 ml-3 truncate"></span>
+                    <button id="remove-image" class="ml-auto text-red-500 hover:text-red-700 font-bold p-1 rounded-full bg-white transition duration-150">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <form id="chat-form" class="flex space-x-3">
+                <input type="file" id="image-upload" accept="image/*" class="hidden">
+                <button type="button" id="upload-button" title="Upload Image for Multimodal Search"
+                        class="p-3 bg-gray-200 text-gray-600 rounded-full hover:bg-gray-300 transition duration-150">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                    </svg>
+                </button>
+                <input
+                    type="text"
+                    id="user-input"
+                    placeholder="Ask about products or upload an image..."
+                    class="flex-grow p-3 border border-gray-300 rounded-full focus:outline-none focus:border-indigo-500 transition duration-150"
+                >
+                <button type="submit" id="send-button"
+                        class="p-3 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition duration-150">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const chatOutput = document.getElementById('chat-output');
+        const imageUpload = document.getElementById('image-upload');
+        const uploadButton = document.getElementById('upload-button');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const imageFilename = document.getElementById('image-filename');
+        const removeImageButton = document.getElementById('remove-image');
+
+        let selectedFile = null;
+        let lastProducts = [];
+
+        const appendMessage = (sender, content) => {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble ${sender === 'user' ? 'user' : 'bot'} shadow-md`;
+            bubble.innerHTML = renderMarkdown(content);
+            messageWrapper.appendChild(bubble);
+            chatOutput.appendChild(messageWrapper);
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+        };
+
+        const renderMarkdown = (markdown) => {
+                let html = markdown;
+
+               
+                html = html.replace(/!\[(.*?)\]\((.*?)\)/g, (match, alt, url) => {
+                    if (!url || url === 'undefined') {
+                        return alt || match;
+                    }
+                    if (url.startsWith('/static/images/products/')) {
+                        const product = lastProducts.find(
+                            p => p.image_url && p.image_url.trim() === url.trim()
+                        );
+                        const priceLabel = product && product.price ? product.price : '';
+                        const linkLabel = product && product.link ? product.link : '';
+
+                        return `
+                            <div class="product-card">
+                                <p class="text-xs text-gray-500 mb-2 font-semibold">Product Found:</p>
+                                <img src="${url}" alt="${alt}" class="product-image">
+                                ${product ? `<p class="text-sm font-semibold">${product.name}</p>` : ''}
+                                ${priceLabel ? `<p class="text-gray-600">${priceLabel}</p>` : ''}
+                                ${
+                                linkLabel
+                                    ? `<a href="${linkLabel}" target="_blank" class="text-indigo-800 underline text-sm break-all">
+                                        See product on website                                    </a>`
+                                    : ''
+                                }
+                            </div>
+                        `;
+                    }
+                    return match;
+                });
+
+            html = html
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\[Link do Produto\]\((.*?)\)/g,
+                    '<a href="$1" target="_blank" class="text-indigo-800 underline hover:text-indigo-600">Link do Produto</a>'
+                );
+
+            return html.replace(/\n/g, '<br>');
+        };
+
+        const showLoading = () => {
+            const btn = document.getElementById('send-button');
+            btn.disabled = true;
+            btn.innerHTML =
+                `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                            stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>`;
+        };
+
+        const hideLoading = () => {
+            const btn = document.getElementById('send-button');
+            btn.disabled = false;
+            btn.innerHTML =
+                `<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>`;
+        };
+
+        uploadButton.addEventListener('click', () => imageUpload.click());
+
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    imagePreview.src = ev.target.result;
+                    imageFilename.textContent = file.name;
+                    imagePreviewContainer.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removeImageButton.addEventListener('click', () => {
+            selectedFile = null;
+            imageUpload.value = null;
+            imagePreviewContainer.classList.add('hidden');
+            imagePreview.src = '';
+            imageFilename.textContent = '';
+        });
+
+        const renderProducts = (products) => {
+            lastProducts = products || [];
+            lastProducts.forEach(p => {
+                const imageUrl = p.image_url || p.image || '';
+                const priceLabel = p.price || '';
+
+                if (imageUrl) {
+                    appendMessage('bot', `![${p.name}](${imageUrl})`);
+                } else {
+                    const extra = priceLabel ? `<br>${priceLabel}` : '';
+                    appendMessage('bot', `**${p.name}**${extra}`);
+                }
+            });
+        };
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = userInput.value.trim();
+
+            if (!query && !selectedFile) return;
+
+            const isMultimodal = !!selectedFile;
+
+            showLoading();
+
+            if (isMultimodal && selectedFile) {
+               
+                const reader = new FileReader();
+                reader.onload = async (ev) => {
+                    const imgHtml = `<img src="${ev.target.result}" alt="${selectedFile.name}" class="image-preview">`;
+                    const textHtml = query ? `<div>${query}</div>` : "";
+                    appendMessage('user', `${textHtml}${imgHtml}`);
+
+                    const apiUrl = '/multimodal_search';
+                    const formData = new FormData();
+                    formData.append('file', selectedFile);
+                    formData.append('query', query || '');
+
+                    try {
+                        const response = await fetch(apiUrl, { method: 'POST', body: formData });
+
+                        if (!response.ok) {
+                            const text = await response.text();
+                            throw new Error(text.slice(0, 200) || `HTTP ${response.status}`);
+                        }
+
+                        const data = await response.json();
+                        const products = data.products || [];
+
+                        if (products.length) {
+                            renderProducts(products);
+                        }
+
+                        if (!products.length && data.response) {
+                            appendMessage('bot', data.response);
+                        }
+                    } catch (error) {
+                        appendMessage('bot', `My bad! I can only help with fashion stuff. Maybe take a look at some clothing?`);
+                    } finally {
+                        removeImageButton.click();
+                        userInput.value = '';
+                        hideLoading();
+                    }
+                };
+                reader.readAsDataURL(selectedFile);
+            } else {
+                
+                appendMessage('user', query);
+
+                const apiUrl = `/get?msg=${encodeURIComponent(query)}`;
+
+                try {
+                    const response = await fetch(apiUrl);
+
+                    if (!response.ok) {
+                        const text = await response.text();
+                        throw new Error(text.slice(0, 200) || `HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const products = data.products || [];
+
+                    if (products.length) {
+                        renderProducts(products);
+                    }
+
+                    if (!products.length && data.response) {
+                        appendMessage('bot', data.response);
+                    }
+                } catch (error) {
+                    appendMessage('bot', `My bad! I can only help with fashion stuff. Maybe take a look at some clothing?`);
+                } finally {
+                    userInput.value = '';
+                    hideLoading();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

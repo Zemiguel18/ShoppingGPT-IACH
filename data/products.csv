@@ -1,0 +1,31 @@
+﻿product_code,product_name,material,size,color,brand,gender,stock_quantity,price
+P001,White Shirt,Cotton Fabric,"S, M, L, XL",White,XYZ,Unisex,50,350000
+P002,Blue Jeans,Denim Fabric,"28, 30, 32, 34",Blue,ABC,Male,30,450000
+P003,Floral Dress,Chiffon Fabric,"S, M, L",Multicolor,DEF,Female,20,550000
+P004,Black Dress,Silk Fabric,"S, M, L",Black,GHI,Female,10,1200000
+P005,Leather Jacket,Leather,"M, L, XL",Black,JKL,Male,15,2500000
+P006,Shorts,Cotton Fabric,"S, M, L, XL","Blue, Black",MNO,Unisex,40,300000
+P007,Flared Dress,Chiffon Fabric,"S, M, L",Pink,PQR,Female,25,600000
+P008,Graphic T-Shirt,Cotton Fabric,"S, M, L, XL","White, Black",STU,Unisex,35,250000
+P009,Trousers,Polyester Fabric,"28, 30, 32, 34","Black, Gray",VWX,Male,45,700000
+P010,Maxi Dress,Chiffon Fabric,"S, M, L","Blue, White",YZA,Female,20,800000
+P011,Sweater,Wool,"S, M, L, XL","Blue, Red",BCD,Unisex,50,500000
+P012,Leggings,Spandex Fabric,"S, M, L","Black, Gray",EFG,Female,30,350000
+P013,Pencil Skirt,Polyester Fabric,"S, M, L",Black,HIJ,Female,20,750000
+P014,Blouse,Silk Fabric,"S, M, L","White, Blue",KLM,Female,25,400000
+P015,Jogger Pants,Cotton Fabric,"S, M, L, XL","Black, Gray",NOP,Unisex,35,450000
+P016,Midi Dress,Silk Fabric,"S, M, L","Pink, White",QRS,Female,20,700000
+P017,Long Sleeve T-Shirt,Cotton Fabric,"S, M, L, XL","Blue, Black",TUV,Unisex,50,300000
+P018,Khaki Pants,Khaki Fabric,"28, 30, 32, 34","Brown, Blue",WXY,Male,30,500000
+P019,Lace Dress,Lace Fabric,"S, M, L","Red, Black",ZAB,Female,15,1000000
+P020,Party Dress,Satin Fabric,"S, M, L","Blue, Yellow",CDE,Female,10,1500000
+P021,Crew Neck T-Shirt,Cotton Fabric,"S, M, L, XL","Black, White",FGHI,Unisex,60,200000
+P022,Jean Shorts,Denim Fabric,"S, M, L, XL","Blue, White",JKLM,Female,40,350000
+P023,Bodycon Dress,Polyester Fabric,"S, M, L","Red, Black",NOPQ,Female,15,900000
+P024,Evening Gown,Satin Fabric,"S, M, L","Red, Blue",RSTU,Female,5,2000000
+P025,Hoodie,Fleece Fabric,"S, M, L, XL","Gray, Black",UVWX,Unisex,50,600000
+P026,Sweatpants,Cotton Fabric,"S, M, L, XL","Gray, Black",YZAB,Unisex,30,500000
+P027,Pleated Mini Skirt,Polyester Fabric,"S, M, L","Pink, Black",BCDE,Female,20,650000
+P028,Wool Long Sleeve,Wool,"S, M, L, XL","Gray, Black",DEFG,Unisex,25,700000
+P029,Wide Leg Pants,Linen Fabric,"S, M, L","White, Gray",FGHI,Female,15,750000
+P030,Summer Dress,Cotton Fabric,"S, M, L","Yellow, White",HIJK,Female,20,900000
