@@ -1,6 +1,6 @@
 import os
 import traceback
-
+from dotenv import load_dotenv
 from flask import (
     Flask,
     render_template,
@@ -30,8 +30,8 @@ from shoppinggpt.agent import ShoppingAgent
 os.environ["GRPC_VERBOSITY"] = "ERROR"
 os.environ["GRPC_TRACE"] = ""
 
-
-GOOGLE_API_KEY = "AIzaSyCcspiL0XR_EH40aj5EtsfGRoaq_u3752Y"
+load_dotenv()
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")    
 
 
 LLM = None
